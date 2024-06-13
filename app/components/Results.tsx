@@ -1,9 +1,6 @@
-import axios from "axios";
+import React, { useState } from "react";
 import Table from "react-bootstrap/Table";
-import GetData from "./GetData";
-import Favorite from "./Favorite";
-import { HiOutlineStar, HiStar } from "react-icons/hi";
-import React, { useState, useEffect } from "react";
+import { HiOutlineStar, HiStar } from "react-icons/hi2";
 import "../globals.css";
 
 interface PackageData {
@@ -14,61 +11,30 @@ interface PackageData {
 }
 
 interface ResultsProp {
-  currPackageData: string;
+  packageDataList: PackageData[];
 }
 
-const Results: React.FC<ResultsProp> = ({ currPackageData }) => {
-  const [packageData, setPackageData] = useState<PackageData | null>(null);
-  const [favorites, setFavorites] = useState<string[]>([]);
+const Results: React.FC<ResultsProp> = ({ packageDataList }) => {
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (currPackageData) {
-        const data = await axios.get(`/api/package/${currPackageData}`);
-        setPackageData(data.data);
+  const handleFavoriteClick = (packageName: string) => {
+    setFavorites((prevFavorites) => {
+      const newFavorites = new Set(prevFavorites);
+      if (newFavorites.has(packageName)) {
+        newFavorites.delete(packageName);
+      } else {
+        newFavorites.add(packageName);
       }
-    };
-    fetchData();
-  }, [currPackageData]);
-
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      const response = await axios.get(`/api/favorites`);
-      setFavorites(response.data.map((fav: PackageData) => fav.name));
-    };
-    fetchFavorites();
-  }, []);
-
-  const toggleFavorite = async (packageName: string) => {
-    if (favorites.includes(packageName)) {
-      await axios.delete(`/api/favorites/${packageName}`);
-      setFavorites(favorites.filter((name) => name !== packageName));
-    } else {
-      const favoriteData = {
-        name: packageData?.name,
-        version: packageData?.version,
-        description: packageData?.description,
-        homepage: packageData?.homepage,
-      };
-      await axios.post(`/api/favorites`, favoriteData);
-      setFavorites([...favorites, packageName]);
-    }
+      return newFavorites;
+    });
   };
 
-  const isFavorite = (packageName: string) => favorites.includes(packageName);
-
   return (
-    <div className="table-div">
-      <Table
-        className="results"
-        striped
-        bordered
-        hover
-        style={{ width: "900px" }}
-      >
+    <div className="results-container">
+      <Table className="results-table" striped bordered hover>
         <thead>
           <tr>
-            <th>Name</th>
+            <th>Package</th>
             <th style={{ whiteSpace: "nowrap" }}>Latest Version</th>
             <th>Description</th>
             <th>Homepage</th>
@@ -76,12 +42,11 @@ const Results: React.FC<ResultsProp> = ({ currPackageData }) => {
           </tr>
         </thead>
         <tbody>
-          {packageData ? (
-            <tr>
+          {packageDataList.map((packageData, index) => (
+            <tr key={index}>
               <td>{packageData.name}</td>
               <td>{packageData.version}</td>
               <td>{packageData.description}</td>
-
               <td>
                 <a
                   href={packageData.homepage}
@@ -91,20 +56,15 @@ const Results: React.FC<ResultsProp> = ({ currPackageData }) => {
                   {packageData.homepage}
                 </a>
               </td>
-              <span
-                className={`star-icon ${
-                  isFavorite(packageData.name) ? "yellow" : ""
-                }`}
-                onClick={() => toggleFavorite(packageData.name)}
-              >
-                {isFavorite(packageData.name) ? <HiStar /> : <HiOutlineStar />}
-              </span>
+              <td onClick={() => handleFavoriteClick(packageData.name)}>
+                {favorites.has(packageData.name) ? (
+                  <HiStar className="favorite-icon" />
+                ) : (
+                  <HiOutlineStar className="favorite-icon" />
+                )}
+              </td>
             </tr>
-          ) : (
-            <tr>
-              <td colSpan={5}>No packages found</td>
-            </tr>
-          )}
+          ))}
         </tbody>
       </Table>
     </div>

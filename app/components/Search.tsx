@@ -1,26 +1,52 @@
+"use client";
 import React, { useState } from "react";
+import GetData from "./GetData";
 import Results from "./Results";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import "../globals.css";
 
+interface PackageData {
+  name: string;
+  version: string;
+  description: string;
+  homepage: string;
+}
+
 const Search: React.FC = () => {
   const [inputValue, setInputValue] = useState<string>("");
-  const [currPackageData, setCurrPackageData] = useState<string | undefined>(
-    ""
-  );
+  const [packageDataList, setPackageDataList] = useState<PackageData[]>([]);
 
   const handleClick = async () => {
-    setCurrPackageData(inputValue);
+    const data = await GetData(inputValue);
+    if (data && data.version !== "0.0.0") {
+      setPackageDataList((prevList) => [data, ...prevList]);
+      setInputValue("");
+    } else {
+      alert("Package does not have the required version.");
+    }
+  };
+
+  const handleClear = () => {
+    setInputValue("");
+    setPackageDataList([]);
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await handleClick();
   };
 
   return (
     <>
-      <Row className="justify-content-center align-items-center">
+      <Row className="justify-content-center">
         <Col xs="auto">
-          <Form className="d-flex align-items-center">
-            <Form.Group controlId="exampleForm.ControlInput1" className="mb-0">
+          <Form onSubmit={handleSubmit}>
+            <Form.Group
+              className="col-md-4"
+              controlId="exampleForm.ControlInput1"
+            >
               <Form.Control
                 type="text"
                 placeholder="Search"
@@ -28,18 +54,26 @@ const Search: React.FC = () => {
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
               />
+              <button
+                type="button"
+                className="search-button"
+                onClick={handleClick}
+              >
+                Get Data
+              </button>
+              <button
+                type="button"
+                className="search-button"
+                style={{ marginLeft: "10px" }}
+                onClick={handleClear}
+              >
+                Clear
+              </button>
             </Form.Group>
-            <button
-              type="button"
-              className="search-button"
-              onClick={handleClick}
-            >
-              Get Data
-            </button>
           </Form>
         </Col>
       </Row>
-      {currPackageData && <Results currPackageData={currPackageData} />}
+      <Results packageDataList={packageDataList} />
     </>
   );
 };
