@@ -10,9 +10,7 @@
 }
 
 .search-button {
-  height: calc(
-    1.5em + 0.75rem + 2px
-  ); /* Matches the height of the input field */
+  height: calc(1.5em + 0.75rem + 2px);
   padding: 0.375rem 0.75rem;
   font-size: 1rem;
   line-height: 1.5;
@@ -21,6 +19,7 @@
   color: white;
   cursor: pointer;
   border-radius: 8px;
+  margin-top: 10px;
 }
 
 .table-div {
@@ -37,4 +36,43 @@
 .search-button:hover {
   background-color: #0056b3;
   border-color: #0056b3;
+}
+
+.table-custom {
+  width: 900px;
+}
+
+.results-table {
+  width: 80%;
+  margin: 0 auto;
+  margin-top: 20px;
+  border: 1px solid #dee2e6;
+  border-radius: 5px;
+}
+
+.star-icon {
+  cursor: pointer;
+}
+
+.star-icon.yellow {
+  color: rgb(254, 254, 3);
+}
+
+.favorite-icon:hover {
+  color: gold;
+}
+
+.favorite-icon {
+  cursor: pointer;
+  color: gold;
+  text-align: center;
+  display: block;
+  margin: auto;
+  font-size: 24px;
+}
+
+.results-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
 }
