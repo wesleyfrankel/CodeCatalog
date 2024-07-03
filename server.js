@@ -1,70 +1,45 @@
 const express = require("express");
 const mongoose = require("mongoose");
-const bodyParser = require("body-parser");
 const cors = require("cors");
 
+const app = express();
 require("dotenv").config();
 
-const app = express();
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = "mongodb://localhost:27017";
-
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-
-const favoriteSchema = new mongoose.Schema({
-  name: String,
-  version: String,
-  description: String,
-  homepage: String,
-});
-
-const Favorite = mongoose.model("Favorite", favoriteSchema);
-
+app.use(express.json());
 app.use(cors());
-app.use(bodyParser.json());
 
-app.get("/api/package/:name", async (req, res) => {
-  try {
-    const packageName = req.params.name;
-    const data = await GetData(packageName);
-    res.json(data);
-  } catch (error) {
-    console.error("Error fetching package data:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
+mongoose
+  .connect("mongodb://127.0.0.1:27017/code-catalog", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to database"))
+  .catch(console.error);
+
+const Favorite = require("./app/models/Favorite.ts");
+
+app.get("/favorites", async (req, res) => {
+  const favorites = await Favorite.find();
+
+  res.json(favorites);
 });
 
-app.get("/api/favorites", async (req, res) => {
-  try {
-    const favorites = await Favorite.find();
-    res.json(favorites);
-  } catch (error) {
-    res.status(500).send(error);
-  }
+app.post("/favorites", async (req, res) => {
+  const favorite = new Favorite({
+    name: req.body.name,
+    version: req.body.version,
+    description: req.body.description,
+    homepage: req.body.homepage,
+  });
+
+  await favorite.save();
+  res.json(favorite);
 });
 
-app.post("/api/favorites", async (req, res) => {
-  try {
-    const favorite = new Favorite(req.body);
-    await favorite.save();
-    res.status(201).send(favorite);
-  } catch (error) {
-    res.status(400).send(error);
-  }
+app.delete("/favorites/:id", async (req, res) => {
+  const unFavorite = await Favorite.findByIdAndDelete(req.params.id);
+
+  res.json(unFavorite);
 });
 
-app.delete("/api/favorites/:id", async (req, res) => {
-  try {
-    await Favorite.findByIdAndDelete(req.params.id);
-    res.status(204).send();
-  } catch (error) {
-    res.status(400).send(error);
-  }
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+app.listen(5000, () => console.log("Server started on port 5000"));

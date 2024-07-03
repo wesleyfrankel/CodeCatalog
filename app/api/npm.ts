@@ -1,11 +1,5 @@
 import axios from "axios";
-
-interface PackageData {
-  name: string;
-  version: string;
-  description: string;
-  homepage: string;
-}
+import { PackageData } from "../interfaces/packageData";
 
 const GetData = async (packageName: string): Promise<PackageData | null> => {
   try {

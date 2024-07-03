@@ -1,22 +1,18 @@
 "use client";
 import React, { useState } from "react";
-import GetData from "./GetData";
+import GetData from "../api/npm";
 import Results from "./Results";
 import Form from "react-bootstrap/Form";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import "../globals.css";
-
-interface PackageData {
-  name: string;
-  version: string;
-  description: string;
-  homepage: string;
-}
+import { FavoritePackageData, PackageData } from "../interfaces/packageData";
+import { GetFavorites } from "../api/favorites";
 
 const Search: React.FC = () => {
   const [inputValue, setInputValue] = useState<string>("");
   const [packageDataList, setPackageDataList] = useState<PackageData[]>([]);
+  const [favorites, setFavorites] = useState<FavoritePackageData[]>([]);
 
   const handleClick = async () => {
     const data = await GetData(inputValue);
@@ -31,11 +27,21 @@ const Search: React.FC = () => {
   const handleClear = () => {
     setInputValue("");
     setPackageDataList([]);
+    setFavorites([]);
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await handleClick();
+  };
+
+  const handleGetFavorites = async () => {
+    try {
+      const favorites = await GetFavorites();
+      setFavorites(favorites);
+    } catch (error) {
+      console.error("Error fetching favorites", error);
+    }
   };
 
   return (
@@ -44,7 +50,7 @@ const Search: React.FC = () => {
         <Col xs="auto">
           <Form onSubmit={handleSubmit}>
             <Form.Group
-              className="col-md-4"
+              className="col-md-8"
               controlId="exampleForm.ControlInput1"
             >
               <Form.Control
@@ -65,6 +71,14 @@ const Search: React.FC = () => {
                 type="button"
                 className="search-button"
                 style={{ marginLeft: "10px" }}
+                onClick={handleGetFavorites}
+              >
+                Get Favorites
+              </button>
+              <button
+                type="button"
+                className="search-button"
+                style={{ marginLeft: "10px" }}
                 onClick={handleClear}
               >
                 Clear
@@ -74,6 +88,13 @@ const Search: React.FC = () => {
         </Col>
       </Row>
       <Results packageDataList={packageDataList} />
+      <br />
+      {favorites.length > 0 && (
+        <>
+          <h3 style={{ textAlign: "center" }}>Favorites:</h3>
+          <Results packageDataList={favorites} />
+        </>
+      )}
     </>
   );
 };

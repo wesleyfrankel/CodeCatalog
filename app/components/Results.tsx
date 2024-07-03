@@ -1,32 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Table from "react-bootstrap/Table";
-import { HiOutlineStar, HiStar } from "react-icons/hi2";
+import FavoriteStar from "./FavoriteStar";
 import "../globals.css";
-
-interface PackageData {
-  name: string;
-  version: string;
-  description: string;
-  homepage: string;
-}
+import { FavoritePackageData, PackageData } from "../interfaces/packageData";
+import { GetFavorites } from "../api/favorites";
 
 interface ResultsProp {
   packageDataList: PackageData[];
 }
 
 const Results: React.FC<ResultsProp> = ({ packageDataList }) => {
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [favorites, setFavorites] = useState<FavoritePackageData[]>([]);
+  console.log(favorites);
+  useEffect(() => {
+    const getFavorites = async () => {
+      const currentFavorites = await GetFavorites();
+      setFavorites(currentFavorites);
+    };
+    getFavorites();
+  }, []);
 
-  const handleFavoriteClick = (packageName: string) => {
-    setFavorites((prevFavorites) => {
-      const newFavorites = new Set(prevFavorites);
-      if (newFavorites.has(packageName)) {
-        newFavorites.delete(packageName);
-      } else {
-        newFavorites.add(packageName);
-      }
-      return newFavorites;
-    });
+  const addFavorite = (packageData: FavoritePackageData) => {
+    setFavorites([...favorites, packageData]);
+  };
+
+  const deleteFavorites = (item: FavoritePackageData) => {
+    setFavorites(favorites.filter((fav) => fav._id !== item._id));
   };
 
   return (
@@ -56,13 +55,13 @@ const Results: React.FC<ResultsProp> = ({ packageDataList }) => {
                   {packageData.homepage}
                 </a>
               </td>
-              <td onClick={() => handleFavoriteClick(packageData.name)}>
-                {favorites.has(packageData.name) ? (
-                  <HiStar className="favorite-icon" />
-                ) : (
-                  <HiOutlineStar className="favorite-icon" />
-                )}
-              </td>
+
+              <FavoriteStar
+                packageData={packageData}
+                favorites={favorites}
+                addFavorites={addFavorite}
+                deleteFavorites={deleteFavorites}
+              />
             </tr>
           ))}
         </tbody>
