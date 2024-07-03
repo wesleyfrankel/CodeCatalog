@@ -1,0 +1,14 @@
+GET http://localhost:5000/favorites
+
+###
+POST http://localhost:5000/favorites
+
+{
+    "name": "Test",
+  "version": "1",
+  "description": "one",
+  "homepage": "one.com",
+}
+
+###
+DELETE http://localhost:5000/favorites/6679d3b95bbdd309002b6a47
